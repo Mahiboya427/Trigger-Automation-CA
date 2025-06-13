@@ -5,14 +5,15 @@ define(['postmonger'], function (Postmonger) {
   let payload = {};
   let eventDefinitionKey = null;
 
-  // On window ready
+  // Trigger initial requests when window is ready
   $(window).ready(function () {
     connection.trigger('ready');
     connection.trigger('requestTokens');
     connection.trigger('requestEndpoints');
+    connection.trigger('requestInteraction');
   });
 
-  // Init the activity
+  // Called when the activity is initialized in the Journey Builder UI
   connection.on('initActivity', function (data) {
     if (data) {
       payload = data;
@@ -20,7 +21,7 @@ define(['postmonger'], function (Postmonger) {
 
     const inArguments = payload.arguments?.execute?.inArguments || [];
 
-    // Load values if already saved
+    // Pre-fill values if editing an existing configured activity
     inArguments.forEach(arg => {
       if (arg.messageBody) {
         $('#messageBody').val(arg.messageBody);
@@ -36,11 +37,10 @@ define(['postmonger'], function (Postmonger) {
       }
     });
 
-    // Mark activity as configured
+    // Ensure Journey Builder knows this is configured (will update again after click)
     payload.metaData = payload.metaData || {};
     payload.metaData.isConfigured = true;
 
-    // Show the Next/Done button
     connection.trigger('updateButton', {
       button: 'next',
       visible: true,
@@ -48,34 +48,42 @@ define(['postmonger'], function (Postmonger) {
     });
   });
 
-  // Handle the Next button
+  // Handle when user clicks the “Next” or “Done” button
   connection.on('clickedNext', function () {
     const messageBody = $('#messageBody').val();
     const messagingService = $('#messagingService').val();
     const accountSid = $('#accountSid').val();
     const authToken = $('#authToken').val();
 
-    // Build inArguments
+    // Optional: validate required fields before saving
+    if (!messageBody || !messagingService || !accountSid || !authToken) {
+      alert('All fields are required.');
+      return;
+    }
+
+    // Build inArguments with Journey data and user input
+    payload.arguments = payload.arguments || {};
+    payload.arguments.execute = payload.arguments.execute || {};
     payload.arguments.execute.inArguments = [
       {
         messageBody: messageBody,
         messagingService: messagingService,
         accountSid: accountSid,
         authToken: authToken,
-        to: "{{Contact.Attribute.SMS.phonenumber}}" // or adapt to your data model
+        to: '{{Contact.Attribute.SMS.phonenumber}}', // Replace as needed
+        eventDefinitionKey: eventDefinitionKey
       }
     ];
 
-    // Mark the activity as configured
     payload.metaData.isConfigured = true;
 
-    console.log("Final payload being sent to updateActivity:", JSON.stringify(payload));
+    console.log("🔁 Submitting updated payload to Journey Builder:");
+    console.log(JSON.stringify(payload, null, 2));
 
-    // Send back to Journey Builder
     connection.trigger('updateActivity', payload);
   });
 
-  // Optional: Get eventDefinitionKey
+  // Store the eventDefinitionKey for use in inArguments (if needed)
   connection.on('requestedInteraction', function (interaction) {
     if (interaction) {
       eventDefinitionKey = interaction.eventDefinitionKey;
