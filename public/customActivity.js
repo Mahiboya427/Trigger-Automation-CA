@@ -3,24 +3,44 @@ define(['postmonger'], function (Postmonger) {
 
   const connection = new Postmonger.Session();
   let payload = {};
+  let eventDefinitionKey = null;
 
-  // When window is ready
+  // On window ready
   $(window).ready(function () {
     connection.trigger('ready');
     connection.trigger('requestTokens');
     connection.trigger('requestEndpoints');
   });
 
-  // When Journey loads the activity
+  // Init the activity
   connection.on('initActivity', function (data) {
     if (data) {
       payload = data;
     }
 
-    // Mark activity as configured
-    payload['metaData'] = payload['metaData'] || {};
-    payload['metaData'].isConfigured = true;
+    const inArguments = payload.arguments?.execute?.inArguments || [];
 
+    // Load values if already saved
+    inArguments.forEach(arg => {
+      if (arg.messageBody) {
+        $('#messageBody').val(arg.messageBody);
+      }
+      if (arg.messagingService) {
+        $('#messagingService').val(arg.messagingService);
+      }
+      if (arg.accountSid) {
+        $('#accountSid').val(arg.accountSid);
+      }
+      if (arg.authToken) {
+        $('#authToken').val(arg.authToken);
+      }
+    });
+
+    // Mark activity as configured
+    payload.metaData = payload.metaData || {};
+    payload.metaData.isConfigured = true;
+
+    // Show the Next/Done button
     connection.trigger('updateButton', {
       button: 'next',
       visible: true,
@@ -28,9 +48,37 @@ define(['postmonger'], function (Postmonger) {
     });
   });
 
-  // When “Done” is clicked in UI
+  // Handle the Next button
   connection.on('clickedNext', function () {
-    // No need to set inArguments if you're just triggering an API
+    const messageBody = $('#messageBody').val();
+    const messagingService = $('#messagingService').val();
+    const accountSid = $('#accountSid').val();
+    const authToken = $('#authToken').val();
+
+    // Build inArguments
+    payload.arguments.execute.inArguments = [
+      {
+        messageBody: messageBody,
+        messagingService: messagingService,
+        accountSid: accountSid,
+        authToken: authToken,
+        to: "{{Contact.Attribute.SMS.phonenumber}}" // or adapt to your data model
+      }
+    ];
+
+    // Mark the activity as configured
+    payload.metaData.isConfigured = true;
+
+    console.log("Final payload being sent to updateActivity:", JSON.stringify(payload));
+
+    // Send back to Journey Builder
     connection.trigger('updateActivity', payload);
+  });
+
+  // Optional: Get eventDefinitionKey
+  connection.on('requestedInteraction', function (interaction) {
+    if (interaction) {
+      eventDefinitionKey = interaction.eventDefinitionKey;
+    }
   });
 });
