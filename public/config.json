@@ -2,17 +2,23 @@
   "workflowApiVersion": "1.1",
   "metaData": {
     "icon": "https://trigger-automation-ca.onrender.com/icon.png",
-    "category": "custom"
+    "category": "message"
   },
   "type": "REST",
   "lang": {
     "en-US": {
       "name": "Trigger Automation",
-      "description": "Triggers a Marketing Cloud Automation via REST API."
+      "description": "Triggers a Marketing Cloud Automation via REST API if email is present."
     }
   },
   "arguments": {
     "execute": {
+      "inArguments": [
+        {
+          "email": "{{Contact.Default.Email}}"
+        }
+      ],
+      "outArguments": [],
       "url": "https://trigger-automation-ca.onrender.com/activity/execute",
       "verb": "POST",
       "body": "",
@@ -55,5 +61,20 @@
       "fullscreen": false
     }
   },
-  "schema": {}
+  "schema": {
+    "arguments": {
+      "execute": {
+        "inArguments": [
+          {
+            "email": {
+              "dataType": "Email",
+              "isNullable": false,
+              "direction": "in"
+            }
+          }
+        ],
+        "outArguments": []
+      }
+    }
+  }
 }
