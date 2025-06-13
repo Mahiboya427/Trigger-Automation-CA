@@ -3,34 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <title>Trigger Automation Activity</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/postmonger/1.0.2/postmonger.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js"></script>
+  <script>
+    require.config({
+      paths: {
+        postmonger: 'https://cdnjs.cloudflare.com/ajax/libs/postmonger/1.0.2/postmonger'
+      }
+    });
+
+    require(['activity']);
+  </script>
 </head>
 <body>
   <h2>Custom Activity: Trigger Automation</h2>
   <p>No configuration needed.</p>
-
-  <script>
-    (function () {
-      var connection = new Postmonger.Session();
-
-      connection.on('initActivity', function (payload) {
-        console.log('🔄 initActivity', payload);
-        connection.trigger('ready');
-      });
-
-      connection.on('requestedTokens', function (tokens) {
-        console.log('🔑 Tokens:', tokens);
-      });
-
-      connection.on('requestedEndpoints', function (endpoints) {
-        console.log('🌐 Endpoints:', endpoints);
-      });
-
-      // Initiate connection
-      connection.trigger('ready');
-      connection.trigger('requestTokens');
-      connection.trigger('requestEndpoints');
-    })();
-  </script>
 </body>
 </html>
