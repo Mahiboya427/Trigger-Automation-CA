@@ -1,8 +1,8 @@
 {
   "workflowApiVersion": "1.1",
   "metaData": {
-    "icon": "icon.png",
-    "category": "message"
+    "icon": "https://trigger-automation-ca.onrender.com/icon.png",
+    "category": "custom"
   },
   "type": "REST",
   "lang": {
@@ -26,21 +26,24 @@
       "url": "https://trigger-automation-ca.onrender.com/activity/save",
       "verb": "POST",
       "body": "",
-      "header": "",
       "format": "json"
     },
     "publish": {
       "url": "https://trigger-automation-ca.onrender.com/activity/publish",
       "verb": "POST",
       "body": "",
-      "header": "",
       "format": "json"
     },
     "validate": {
       "url": "https://trigger-automation-ca.onrender.com/activity/validate",
       "verb": "POST",
       "body": "",
-      "header": "",
+      "format": "json"
+    },
+    "stop": {
+      "url": "https://trigger-automation-ca.onrender.com/activity/stop",
+      "verb": "POST",
+      "body": "",
       "format": "json"
     }
   },
@@ -48,7 +51,8 @@
     "configModal": {
       "url": "https://trigger-automation-ca.onrender.com/index.html",
       "height": 600,
-      "width": 800
+      "width": 800,
+      "fullscreen": false
     }
   },
   "schema": {}
