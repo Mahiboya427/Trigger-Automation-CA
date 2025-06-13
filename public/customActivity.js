@@ -2,42 +2,38 @@ window.onload = function () {
   const connection = new Postmonger.Session();
   let payload = {};
 
-  // Ready signal to Journey Builder
   connection.trigger('ready');
+  connection.trigger('requestTokens');
+  connection.trigger('requestEndpoints');
 
-  // Load existing payload if returning to configuration
   connection.on('initActivity', function (data) {
     if (data) {
       payload = data;
     }
 
-    // Ensure inArguments exists
-    if (!payload.arguments) {
-      payload.arguments = {};
-    }
+    const inArgs = payload?.arguments?.execute?.inArguments || [];
 
-    if (!payload.arguments.execute) {
-      payload.arguments.execute = {};
-    }
-
-    payload.arguments.execute.inArguments = [
-      {
-        triggerSource: 'journeyBuilder',
-        timestamp: new Date().toISOString()
+    let email = '';
+    inArgs.forEach(arg => {
+      if (arg.email) {
+        email = arg.email;
       }
-    ];
+    });
+
+    if (email) {
+      document.getElementById('emailDisplay').innerText = `Email: ${email}`;
+    }
   });
 
-  // Save configuration when clicking 'Done'
   connection.on('clickedNext', function () {
+    const email = '{{Contact.Default.Email}}'; // Use dynamic data binding
+
+    // Update the payload
+    payload.arguments.execute.inArguments = [
+      { email: email }
+    ];
+    payload.metaData.isConfigured = true;
+
     connection.trigger('updateActivity', payload);
   });
-
-  // Support legacy 'done' button if present
-  const doneBtn = document.getElementById('done');
-  if (doneBtn) {
-    doneBtn.addEventListener('click', function () {
-      connection.trigger('updateActivity', payload);
-    });
-  }
 };
