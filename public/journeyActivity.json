@@ -1,7 +1,7 @@
 {
   "workflowApiVersion": "1.1",
   "metaData": {
-    "icon": "https://yourdomain.com/icon.png",
+    "icon": "https://trigger-automation-ca.onrender.com/icon.png",
     "category": "message"
   },
   "type": "REST",
@@ -13,7 +13,7 @@
   },
   "arguments": {
     "execute": {
-      "url": "http://yourdomain.com/activity/execute",
+      "url": "https://trigger-automation-ca.onrender.com/activity/execute",
       "method": "POST",
       "body": "",
       "headers": {},
