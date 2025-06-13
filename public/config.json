@@ -1,15 +1,14 @@
 {
   "workflowApiVersion": "1.1",
-  "key": "ab4e4816-cb19-4d96-b1b9-8e6d949c41c2",  // Unique internal key
   "metaData": {
     "icon": "https://trigger-automation-ca.onrender.com/icon.png",
-    "category": "message"
+    "category": "custom"
   },
   "type": "REST",
   "lang": {
     "en-US": {
       "name": "Trigger Automation",
-      "description": "Triggers a Marketing Cloud Automation from Journey Builder"
+      "description": "Triggers a Marketing Cloud Automation via REST API."
     }
   },
   "arguments": {
@@ -23,20 +22,28 @@
     }
   },
   "configurationArguments": {
-    "applicationExtensionKey": "2876f328-14fb-47bf-959e-83f3acfc1cc3",  // <- Add from SFMC Installed Packages
+    "save": {
+      "url": "https://trigger-automation-ca.onrender.com/activity/save",
+      "verb": "POST",
+      "body": "",
+      "format": "json"
+    },
     "publish": {
       "url": "https://trigger-automation-ca.onrender.com/activity/publish",
       "verb": "POST",
+      "body": "",
       "format": "json"
     },
     "validate": {
       "url": "https://trigger-automation-ca.onrender.com/activity/validate",
       "verb": "POST",
+      "body": "",
       "format": "json"
     },
-    "save": {
-      "url": "https://trigger-automation-ca.onrender.com/activity/save",
+    "stop": {
+      "url": "https://trigger-automation-ca.onrender.com/activity/stop",
       "verb": "POST",
+      "body": "",
       "format": "json"
     }
   },
@@ -44,15 +51,9 @@
     "configModal": {
       "url": "https://trigger-automation-ca.onrender.com/index.html",
       "height": 600,
-      "width": 800
+      "width": 800,
+      "fullscreen": false
     }
   },
-  "schema": {
-    "arguments": {
-      "execute": {
-        "inArguments": [],
-        "outArguments": []
-      }
-    }
-  }
+  "schema": {}
 }
