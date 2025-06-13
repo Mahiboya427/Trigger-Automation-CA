@@ -1,13 +1,36 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Custom Activity</title>
-  <script src="https://unpkg.com/postmonger"></script>
-  <script src="customActivity.js"></script>
+  <meta charset="UTF-8">
+  <title>Trigger Automation Activity</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/postmonger/1.0.2/postmonger.js"></script>
 </head>
 <body>
-  <h2>Hello from Custom Activity</h2>
-  <p>This activity triggers a Marketing Cloud Automation when executed.</p>
-  <button id="done">Done</button>
+  <h2>Custom Activity: Trigger Automation</h2>
+  <p>No configuration needed.</p>
+
+  <script>
+    (function () {
+      var connection = new Postmonger.Session();
+
+      connection.on('initActivity', function (payload) {
+        console.log('🔄 initActivity', payload);
+        connection.trigger('ready');
+      });
+
+      connection.on('requestedTokens', function (tokens) {
+        console.log('🔑 Tokens:', tokens);
+      });
+
+      connection.on('requestedEndpoints', function (endpoints) {
+        console.log('🌐 Endpoints:', endpoints);
+      });
+
+      // Initiate connection
+      connection.trigger('ready');
+      connection.trigger('requestTokens');
+      connection.trigger('requestEndpoints');
+    })();
+  </script>
 </body>
 </html>
