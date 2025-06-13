@@ -1,5 +1,6 @@
 {
   "workflowApiVersion": "1.1",
+  "key": "ab4e4816-cb19-4d96-b1b9-8e6d949c41c2",  // Unique internal key
   "metaData": {
     "icon": "https://trigger-automation-ca.onrender.com/icon.png",
     "category": "message"
@@ -22,14 +23,21 @@
     }
   },
   "configurationArguments": {
+    "applicationExtensionKey": "REPLACE_WITH_YOUR_PACKAGE_ID",  // <- Add from SFMC Installed Packages
     "publish": {
-      "url": "https://trigger-automation-ca.onrender.com/activity/publish"
+      "url": "https://trigger-automation-ca.onrender.com/activity/publish",
+      "verb": "POST",
+      "format": "json"
     },
     "validate": {
-      "url": "https://trigger-automation-ca.onrender.com/activity/validate"
+      "url": "https://trigger-automation-ca.onrender.com/activity/validate",
+      "verb": "POST",
+      "format": "json"
     },
     "save": {
-      "url": "https://trigger-automation-ca.onrender.com/activity/save"
+      "url": "https://trigger-automation-ca.onrender.com/activity/save",
+      "verb": "POST",
+      "format": "json"
     }
   },
   "userInterfaces": {
