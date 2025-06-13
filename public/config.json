@@ -23,7 +23,7 @@
     }
   },
   "configurationArguments": {
-    "applicationExtensionKey": "REPLACE_WITH_YOUR_PACKAGE_ID",  // <- Add from SFMC Installed Packages
+    "applicationExtensionKey": "2876f328-14fb-47bf-959e-83f3acfc1cc3",  // <- Add from SFMC Installed Packages
     "publish": {
       "url": "https://trigger-automation-ca.onrender.com/activity/publish",
       "verb": "POST",
