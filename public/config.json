@@ -14,7 +14,8 @@
   "arguments": {
     "execute": {
       "inArguments": [
-        { "automationKey": "" }
+        { "automationKey": "" },
+        { "email": "{{Contact.Default.Email}}" }
       ],
       "url": "https://trigger-automation-ca.onrender.com/activity/execute",
       "verb": "POST",
@@ -61,6 +62,13 @@
             "automationKey": {
               "dataType": "Text",
               "isNullable": false,
+              "direction": "in"
+            }
+          },
+          {
+            "email": {
+              "dataType": "EmailAddress",
+              "isNullable": true,
               "direction": "in"
             }
           }
