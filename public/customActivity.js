@@ -35,7 +35,7 @@ window.onload = function () {
 
     payload.arguments.execute.inArguments = [
       { automationKey: automationKey },
-      { email: '{{Contact.Default.Email}}' } // optional
+       { email: "{{InteractionDefaults.Email}}" }
     ];
 
     payload.metaData.isConfigured = true;
