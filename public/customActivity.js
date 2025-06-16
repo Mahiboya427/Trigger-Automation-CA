@@ -7,30 +7,34 @@ window.onload = function () {
   connection.trigger('requestEndpoints');
 
   connection.on('initActivity', function (data) {
-    if (data) {
-      payload = data;
-    }
+    if (data) payload = data;
 
-    const inArgs = payload?.arguments?.execute?.inArguments || [];
+    const hasInArguments =
+      payload.arguments &&
+      payload.arguments.execute &&
+      payload.arguments.execute.inArguments &&
+      payload.arguments.execute.inArguments.length > 0;
 
-    let email = '';
-    inArgs.forEach(arg => {
-      if (arg.email) {
-        email = arg.email;
-      }
-    });
-
-    if (email) {
-      document.getElementById('emailDisplay').innerText = `Email: ${email}`;
+    if (hasInArguments) {
+      const inArgs = payload.arguments.execute.inArguments;
+      inArgs.forEach(arg => {
+        if (arg.automationKey) {
+          document.getElementById('automationKey').value = arg.automationKey;
+        }
+      });
     }
   });
 
-  connection.on('clickedNext', function () {
-    const email = '{{Contact.Default.Email}}'; // Use dynamic data binding
+  document.getElementById('done').addEventListener('click', function () {
+    const automationKey = document.getElementById('automationKey').value.trim();
 
-    // Update the payload
+    if (!automationKey) {
+      alert('Please enter a valid Automation Key.');
+      return;
+    }
+
     payload.arguments.execute.inArguments = [
-      { email: email }
+      { automationKey: automationKey }
     ];
     payload.metaData.isConfigured = true;
 
