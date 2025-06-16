@@ -2,23 +2,20 @@
   "workflowApiVersion": "1.1",
   "metaData": {
     "icon": "https://trigger-automation-ca.onrender.com/icon.png",
-    "category": "message"
+    "category": "custom"
   },
   "type": "REST",
   "lang": {
     "en-US": {
       "name": "Trigger Automation",
-      "description": "Triggers a Marketing Cloud Automation via REST API if email is present."
+      "description": "Triggers a Marketing Cloud Automation via REST API."
     }
   },
   "arguments": {
     "execute": {
       "inArguments": [
-        {
-          "email": "{{Contact.Default.Email}}"
-        }
+        { "automationKey": "" }
       ],
-      "outArguments": [],
       "url": "https://trigger-automation-ca.onrender.com/activity/execute",
       "verb": "POST",
       "body": "",
@@ -31,34 +28,29 @@
     "save": {
       "url": "https://trigger-automation-ca.onrender.com/activity/save",
       "verb": "POST",
-      "body": "",
       "format": "json"
     },
     "publish": {
       "url": "https://trigger-automation-ca.onrender.com/activity/publish",
       "verb": "POST",
-      "body": "",
       "format": "json"
     },
     "validate": {
       "url": "https://trigger-automation-ca.onrender.com/activity/validate",
       "verb": "POST",
-      "body": "",
       "format": "json"
     },
     "stop": {
       "url": "https://trigger-automation-ca.onrender.com/activity/stop",
       "verb": "POST",
-      "body": "",
       "format": "json"
     }
   },
   "userInterfaces": {
     "configModal": {
       "url": "https://trigger-automation-ca.onrender.com/index.html",
-      "height": 600,
-      "width": 800,
-      "fullscreen": false
+      "height": 400,
+      "width": 600
     }
   },
   "schema": {
@@ -66,14 +58,13 @@
       "execute": {
         "inArguments": [
           {
-            "email": {
-              "dataType": "Email",
+            "automationKey": {
+              "dataType": "Text",
               "isNullable": false,
               "direction": "in"
             }
           }
-        ],
-        "outArguments": []
+        ]
       }
     }
   }
