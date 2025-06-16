@@ -34,10 +34,16 @@ window.onload = function () {
     }
 
     payload.arguments.execute.inArguments = [
-      { automationKey: automationKey }
+      { automationKey: automationKey },
+      { email: '{{Contact.Default.Email}}' } // optional
     ];
+
     payload.metaData.isConfigured = true;
 
+    // ✅ Wait for updateActivity to complete before moving to nextStep
     connection.trigger('updateActivity', payload);
+    setTimeout(() => {
+      connection.trigger('nextStep');
+    }, 300); // slight delay ensures config is saved before modal closes
   });
 };
