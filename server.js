@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
 const axios = require('axios');
+require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -36,10 +37,10 @@ app.post('/activity/execute', async (req, res) => {
       return res.status(400).json({ status: 'error', message: 'Automation key is missing.' });
     }
 
-    // 🔐 Auth
-    const clientId = '9pgjuv8byisnioxfbaqk820l';
-    const clientSecret = 'NCjoZUctnI8jYIcvWPsYtUup';
-    const accountId = '110007984';
+    // 🔐 Auth using .env
+    const clientId = process.env.CLIENT_ID;
+    const clientSecret = process.env.CLIENT_SECRET;
+    const accountId = process.env.ACCOUNT_ID;
     const authUrl = 'https://mc654h8rl6ypfygmq-qvwq3yrjrq.auth.marketingcloudapis.com/v2/token';
     const automationUrl = `https://mc654h8rl6ypfygmq-qvwq3yrjrq.rest.marketingcloudapis.com/automation/v1/automations/key:${automationKey}/actions/runallonce`;
 
