@@ -1,8 +1,8 @@
 {
   "workflowApiVersion": "1.1",
   "metaData": {
-    "icon": "https://YOUR_PUBLIC_ICON_URL.com/icon.png",
-    "category": "message"
+    "icon": "https://trigger-automation-ca.onrender.com/icon.png",
+    "category": "custom"
   },
   "type": "REST",
   "lang": {
@@ -13,6 +13,10 @@
   },
   "arguments": {
     "execute": {
+      "inArguments": [
+        { "automationKey": "" },
+        { "email": "" }
+      ],
       "url": "https://trigger-automation-ca.onrender.com/activity/execute",
       "verb": "POST",
       "body": "",
@@ -25,31 +29,51 @@
     "save": {
       "url": "https://trigger-automation-ca.onrender.com/activity/save",
       "verb": "POST",
-      "body": "",
-      "header": "",
       "format": "json"
     },
     "publish": {
       "url": "https://trigger-automation-ca.onrender.com/activity/publish",
       "verb": "POST",
-      "body": "",
-      "header": "",
       "format": "json"
     },
     "validate": {
       "url": "https://trigger-automation-ca.onrender.com/activity/validate",
       "verb": "POST",
-      "body": "",
-      "header": "",
+      "format": "json"
+    },
+    "stop": {
+      "url": "https://trigger-automation-ca.onrender.com/activity/stop",
+      "verb": "POST",
       "format": "json"
     }
   },
   "userInterfaces": {
     "configModal": {
       "url": "https://trigger-automation-ca.onrender.com/index.html",
-      "height": 600,
-      "width": 800
+      "height": 400,
+      "width": 600
     }
   },
-  "schema": {}
+  "schema": {
+    "arguments": {
+      "execute": {
+        "inArguments": [
+          {
+            "automationKey": {
+              "dataType": "Text",
+              "isNullable": false,
+              "direction": "in"
+            }
+          },
+          {
+            "email": {
+              "dataType": "EmailAddress",
+              "isNullable": true,
+              "direction": "in"
+            }
+          }
+        ]
+      }
+    }
+  }
 }
