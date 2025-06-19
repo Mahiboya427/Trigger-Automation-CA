@@ -4,6 +4,7 @@ const cors = require('cors');
 const path = require('path');
 const axios = require('axios');
 require('dotenv').config();
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -36,7 +37,7 @@ app.post('/activity/execute', async (req, res) => {
       return res.status(400).json({ status: 'error', message: 'Automation key is missing.' });
     }
 
-    // 🔐 Auth
+    // 🔐 Auth using .env
     const clientId = process.env.CLIENT_ID;
     const clientSecret = process.env.CLIENT_SECRET;
     const accountId = process.env.ACCOUNT_ID;
