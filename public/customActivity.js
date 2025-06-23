@@ -1,49 +1,85 @@
 window.onload = function () {
   const connection = new Postmonger.Session();
   let payload = {};
+  window.selectedKey = null;
 
   connection.trigger('ready');
   connection.trigger('requestTokens');
   connection.trigger('requestEndpoints');
 
   connection.on('initActivity', function (data) {
-    if (data) payload = data;
-
-    const hasInArguments =
-      payload.arguments &&
-      payload.arguments.execute &&
-      payload.arguments.execute.inArguments &&
-      payload.arguments.execute.inArguments.length > 0;
-
-    if (hasInArguments) {
-      const inArgs = payload.arguments.execute.inArguments;
-      inArgs.forEach(arg => {
-        if (arg.automationKey) {
-          document.getElementById('automationKey').value = arg.automationKey;
-        }
-      });
+    if (data) {
+      payload = data;
     }
+
+    const inArgs =
+      payload?.arguments?.execute?.inArguments ?? [];
+
+    inArgs.forEach(arg => {
+      if (arg.automationKey) {
+        window.selectedKey = arg.automationKey;
+        document.getElementById('manualKey').value = arg.automationKey;
+        document.getElementById('status').innerText = `Previously selected: ${arg.automationKey}`;
+        document.getElementById('done').disabled = false;
+      }
+    });
   });
 
   document.getElementById('done').addEventListener('click', function () {
-    const automationKey = document.getElementById('automationKey').value.trim();
-
-    if (!automationKey) {
-      alert('Please enter a valid Automation Key.');
+    const selectedKey = window.selectedKey;
+    if (!selectedKey) {
+      alert('Please select or enter a valid Automation Key.');
       return;
     }
 
+    payload.arguments = payload.arguments || {};
+    payload.arguments.execute = payload.arguments.execute || {};
     payload.arguments.execute.inArguments = [
-      { automationKey: automationKey },
-       { email: "{{InteractionDefaults.Email}}" }
+      { automationKey: selectedKey },
+      { email: '{{InteractionDefaults.Email}}' }
     ];
 
     payload.metaData.isConfigured = true;
 
-    // ✅ Wait for updateActivity to complete before moving to nextStep
     connection.trigger('updateActivity', payload);
     setTimeout(() => {
       connection.trigger('nextStep');
-    }, 300); // slight delay ensures config is saved before modal closes
+    }, 300);
   });
+
+  // Fetch list of automations
+  fetch('/automations')
+    .then(response => response.json())
+    .then(data => {
+      const automationList = document.getElementById('automationList');
+      automationList.innerHTML = '';
+
+      data.items.forEach(item => {
+        if (item.status === 'Running') return; // skip running automations
+
+        const card = document.createElement('div');
+        card.className = 'automation-card';
+        card.innerHTML = `
+          <strong>${item.name}</strong>
+          <div class="status ${item.status}">${item.status}</div>
+          <div class="automation-key">Key: ${item.key}</div>
+          <div class="automation-run">Last Run: ${new Date(item.lastRunTime).toLocaleString()}</div>
+        `;
+
+        card.addEventListener('click', () => {
+          document.querySelectorAll('.automation-card').forEach(c => c.classList.remove('selected'));
+          card.classList.add('selected');
+          window.selectedKey = item.key;
+          document.getElementById('manualKey').value = '';
+          document.getElementById('status').innerText = `Selected: ${item.key}`;
+          document.getElementById('done').disabled = false;
+        });
+
+        automationList.appendChild(card);
+      });
+    })
+    .catch(err => {
+      console.error('Error fetching automations:', err);
+      document.getElementById('automationList').innerHTML = '<p>Error loading automations.</p>';
+    });
 };
