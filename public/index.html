@@ -1,15 +1,197 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Custom Activity</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trigger Automation</title>
   <script src="https://unpkg.com/postmonger"></script>
-  <script src="customActivity.js"></script>
+  <script src="customActivity.js" defer></script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f7fa;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    h2 {
+      color: #1a73e8;
+      margin-top: 20px;
+      margin-bottom: 10px;
+    }
+
+    p {
+      max-width: 700px;
+      margin-bottom: 20px;
+    }
+
+    .automation-container {
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 15px;
+      width: 100%;
+      max-width: 520px;
+      height: 280px;
+      overflow-y: auto;
+    }
+
+    .automation-list {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      width: 100%;
+      align-items: center;
+    }
+
+    .automation-card {
+      width: 100%;
+      background-color: white;
+      border: 2px solid transparent;
+      border-radius: 10px;
+      padding: 15px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+    }
+
+    .automation-card:hover {
+      border-color: #1a73e8;
+      transform: scale(1.01);
+    }
+
+    .automation-card.selected {
+      border-color: #1a73e8;
+      background-color: #e8f0fe;
+    }
+
+    .automation-card.disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    .status {
+      font-size: 13px;
+      margin-top: 5px;
+      font-weight: bold;
+    }
+
+    .status.Scheduled {
+      color: green;
+    }
+
+    .status.Inactive {
+      color: gray;
+    }
+
+    .status.Error {
+      color: red;
+    }
+
+    .automation-key {
+      font-size: 12px;
+      color: #666;
+      margin-top: 8px;
+      word-break: break-word;
+    }
+
+    .automation-run {
+      font-size: 12px;
+      margin-top: 6px;
+      color: #888;
+    }
+
+    #done {
+      margin: 15px 0 10px;
+      padding: 10px 25px;
+      background-color: #1a73e8;
+      color: white;
+      font-weight: bold;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    #done:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+
+    #status {
+      margin-bottom: 10px;
+      font-size: 14px;
+      color: #555;
+    }
+
+    .manual-entry {
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .manual-entry input {
+      padding: 8px;
+      width: 250px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .manual-entry button {
+      background-color: #555;
+      color: white;
+      padding: 6px 12px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-  <h2>Hello from Custom Activity</h2>
-  <p>This activity triggers a Marketing Cloud Automation when executed.</p>
-  <label for="automationKey">Automation Key:</label>
-<input type="text" id="automationKey" placeholder="Enter Automation Key" />
-<button id="done">Done</button>
+  <h2>Select an Automation to Trigger</h2>
+  <p>This custom activity will trigger the selected Marketing Cloud Automation when the journey reaches this step.</p>
+
+  <div class="automation-container">
+    <div id="automationList" class="automation-list">
+      <p>Loading automations...</p>
+    </div>
+  </div>
+
+  <div class="manual-entry">
+    <label for="manualKey">Can't find your automation?</label>
+    <input type="text" id="manualKey" placeholder="Enter Automation Key manually" />
+    <button onclick="selectManualKey()">Use This Key</button>
+  </div>
+
+  <button id="done" disabled>Done</button>
+  <div id="status"></div>
+
+  <script>
+    function selectManualKey() {
+      const key = document.getElementById('manualKey').value.trim();
+      if (key) {
+        document.querySelectorAll('.automation-card').forEach(c => c.classList.remove('selected'));
+        window.selectedKey = key;
+        document.getElementById('done').disabled = false;
+        document.getElementById('status').innerText = `Selected manually: ${key}`;
+      }
+    }
+  </script>
 </body>
 </html>
