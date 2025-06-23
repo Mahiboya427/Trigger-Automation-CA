@@ -17,8 +17,40 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // 🩺 Health check
-app.get('/health', (req, res) => {
-  res.send('OK');
+app.get('/health', (req, res) => res.send('OK'));
+
+// 🔐 Auth helper
+async function getAccessToken() {
+  const authUrl = 'https://mc654h8rl6ypfygmq-qvwq3yrjrq.auth.marketingcloudapis.com/v2/token';
+  const { CLIENT_ID, CLIENT_SECRET, ACCOUNT_ID } = process.env;
+
+  const authResponse = await axios.post(authUrl, {
+    grant_type: 'client_credentials',
+    client_id: CLIENT_ID,
+    client_secret: CLIENT_SECRET,
+    account_id: ACCOUNT_ID
+  });
+
+  return authResponse.data.access_token;
+}
+
+// 📦 Fetch automations
+app.get('/automations', async (req, res) => {
+  try {
+    const accessToken = await getAccessToken();
+    const response = await axios.get(
+      'https://mc654h8rl6ypfygmq-qvwq3yrjrq.rest.marketingcloudapis.com/automation/v1/automations',
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        }
+      }
+    );
+    res.json(response.data);
+  } catch (err) {
+    console.error('Error fetching automations:', err.response?.data || err.message);
+    res.status(500).json({ error: 'Failed to fetch automations' });
+  }
 });
 
 // 🚀 Execute activity
@@ -37,34 +69,15 @@ app.post('/activity/execute', async (req, res) => {
       return res.status(400).json({ status: 'error', message: 'Automation key is missing.' });
     }
 
-    // 🔐 Auth using .env
-    const clientId = process.env.CLIENT_ID;
-    const clientSecret = process.env.CLIENT_SECRET;
-    const accountId = process.env.ACCOUNT_ID;
-    const authUrl = 'https://mc654h8rl6ypfygmq-qvwq3yrjrq.auth.marketingcloudapis.com/v2/token';
+    const accessToken = await getAccessToken();
     const automationUrl = `https://mc654h8rl6ypfygmq-qvwq3yrjrq.rest.marketingcloudapis.com/automation/v1/automations/key:${automationKey}/actions/runallonce`;
 
-    // 🪙 Get access token
-    const authResponse = await axios.post(authUrl, {
-      grant_type: 'client_credentials',
-      client_id: clientId,
-      client_secret: clientSecret,
-      account_id: accountId
-    });
-
-    const accessToken = authResponse.data.access_token;
-
-    // ▶️ Trigger automation
-    const triggerResponse = await axios.post(
-      automationUrl,
-      {},
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        }
+    const triggerResponse = await axios.post(automationUrl, {}, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
       }
-    );
+    });
 
     console.log('✅ Automation Triggered:', triggerResponse.data);
     res.status(200).json({ status: 'success', message: 'Automation triggered successfully' });
@@ -75,23 +88,11 @@ app.post('/activity/execute', async (req, res) => {
   }
 });
 
-// 🔧 Activity lifecycle endpoints
-app.post('/activity/save', (req, res) => {
-  console.log('📝 Save called:', JSON.stringify(req.body, null, 2));
-  res.status(200).json({ status: 'ok' });
-});
+// 🔧 Lifecycle handlers
+app.post('/activity/save', (req, res) => res.status(200).json({ status: 'ok' }));
+app.post('/activity/validate', (req, res) => res.status(200).json({ status: 'ok' }));
+app.post('/activity/publish', (req, res) => res.status(200).json({ status: 'ok' }));
 
-app.post('/activity/validate', (req, res) => {
-  console.log('🔎 Validate called:', JSON.stringify(req.body, null, 2));
-  res.status(200).json({ status: 'ok' });
-});
-
-app.post('/activity/publish', (req, res) => {
-  console.log('🚀 Publish called:', JSON.stringify(req.body, null, 2));
-  res.status(200).json({ status: 'ok' });
-});
-
-// 🖥️ Start
 app.listen(PORT, () => {
   console.log(`🌐 Server running at http://localhost:${PORT}`);
 });
