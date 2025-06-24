@@ -24,7 +24,7 @@ window.onload = function () {
     });
   });
 
-  // ✅ Use Journey Builder native "Done" button
+  // ✅ Triggered when user clicks "Done"
   connection.on('clickedNext', function () {
     const manualKey = document.getElementById('manualKey').value.trim();
     const selectedKey = manualKey || window.selectedKey;
@@ -42,11 +42,12 @@ window.onload = function () {
 
     payload.metaData.isConfigured = true;
     payload.metaData.label = "Automation: " + selectedKey;
+    payload.name = "Key: " + selectedKey; // ✅ This updates the Journey canvas label
 
     connection.trigger('updateActivity', payload);
   });
 
-  // 🔁 Load automations from server
+  // 🔁 Load automations and render UI
   fetch('/automations')
     .then(response => response.json())
     .then(data => {
@@ -81,7 +82,7 @@ window.onload = function () {
       document.getElementById('automationList').innerHTML = '<p>Error loading automations.</p>';
     });
 
-  // 🔘 Manual key confirm button
+  // 🧾 Confirm manual key
   document.querySelector('.manual-entry button')?.addEventListener('click', () => {
     const key = document.getElementById('manualKey').value.trim();
     if (key) {
