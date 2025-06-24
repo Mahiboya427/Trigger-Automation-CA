@@ -26,6 +26,7 @@
       align-items: center;
       text-align: center;
       overflow: hidden;
+      padding: 20px;
     }
 
     h2 {
@@ -37,6 +38,7 @@
     p {
       max-width: 700px;
       margin-bottom: 20px;
+      padding: 0 10px;
     }
 
     .automation-container {
@@ -116,24 +118,8 @@
       color: #888;
     }
 
-    #done {
-      margin: 15px 0 10px;
-      padding: 10px 25px;
-      background-color: #1a73e8;
-      color: white;
-      font-weight: bold;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    #done:disabled {
-      background-color: #ccc;
-      cursor: not-allowed;
-    }
-
     #status {
-      margin-bottom: 10px;
+      margin-top: 15px;
       font-size: 14px;
       color: #555;
     }
@@ -165,7 +151,9 @@
 </head>
 <body>
   <h2>Select an Automation to Trigger</h2>
-  <p>This custom activity will trigger the selected Marketing Cloud Automation when the journey reaches this step.</p>
+  <p style="padding: 0 20px;">
+    This custom activity will trigger the selected Marketing Cloud Automation when the journey reaches this step.
+  </p>
 
   <div class="automation-container">
     <div id="automationList" class="automation-list">
@@ -179,7 +167,6 @@
     <button onclick="selectManualKey()">Use This Key</button>
   </div>
 
-  <button id="done" disabled>Done</button>
   <div id="status"></div>
 
   <script>
@@ -188,7 +175,6 @@
       if (key) {
         document.querySelectorAll('.automation-card').forEach(c => c.classList.remove('selected'));
         window.selectedKey = key;
-        document.getElementById('done').disabled = false;
         document.getElementById('status').innerText = `Selected manually: ${key}`;
       }
     }
