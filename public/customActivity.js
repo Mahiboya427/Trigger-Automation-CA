@@ -12,21 +12,22 @@ window.onload = function () {
       payload = data;
     }
 
-    const inArgs =
-      payload?.arguments?.execute?.inArguments ?? [];
+    const inArgs = payload?.arguments?.execute?.inArguments ?? [];
 
     inArgs.forEach(arg => {
       if (arg.automationKey) {
         window.selectedKey = arg.automationKey;
         document.getElementById('manualKey').value = arg.automationKey;
         document.getElementById('status').innerText = `Previously selected: ${arg.automationKey}`;
-        document.getElementById('done').disabled = false;
       }
     });
   });
 
-  document.getElementById('done').addEventListener('click', function () {
-    const selectedKey = window.selectedKey;
+  // ✅ Use Journey Builder's native 'Done' button
+  connection.on('clickedNext', function () {
+    const manualKey = document.getElementById('manualKey').value.trim();
+    const selectedKey = manualKey || window.selectedKey;
+
     if (!selectedKey) {
       alert('Please select or enter a valid Automation Key.');
       return;
@@ -40,14 +41,12 @@ window.onload = function () {
     ];
 
     payload.metaData.isConfigured = true;
+    payload.metaData.label = "Automation: " + selectedKey;
 
     connection.trigger('updateActivity', payload);
-    setTimeout(() => {
-      connection.trigger('nextStep');
-    }, 300);
   });
 
-  // Fetch list of automations
+  // 🔁 Fetch automation list
   fetch('/automations')
     .then(response => response.json())
     .then(data => {
@@ -72,7 +71,6 @@ window.onload = function () {
           window.selectedKey = item.key;
           document.getElementById('manualKey').value = '';
           document.getElementById('status').innerText = `Selected: ${item.key}`;
-          document.getElementById('done').disabled = false;
         });
 
         automationList.appendChild(card);
