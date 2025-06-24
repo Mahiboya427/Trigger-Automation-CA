@@ -50,8 +50,8 @@
   "userInterfaces": {
     "configModal": {
       "url": "https://sfmc-eventtrigger-automation-akexarevdkhbcghj.centralindia-01.azurewebsites.net/index.html",
-      "height": 675,
-      "width": 675
+      "height": 670,
+      "width": 670
     }
   },
   "schema": {
