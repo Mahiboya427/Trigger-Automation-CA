@@ -1,4 +1,3 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,38 +7,18 @@
   <script src="https://unpkg.com/postmonger"></script>
   <script src="customActivity.js" defer></script>
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
+    * { box-sizing: border-box; }
     html, body {
-      height: 100%;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
+      height: 100%; margin: 0; padding: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f4f7fa;
-      color: #333;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      overflow: hidden;
-      padding: 20px;
+      background-color: #f4f7fa; color: #333;
+      display: flex; flex-direction: column;
+      align-items: center; text-align: center;
+      overflow: hidden; padding: 20px;
     }
 
-    h2 {
-      color: #1a73e8;
-      margin-top: 20px;
-      margin-bottom: 10px;
-    }
-
-    p {
-      max-width: 700px;
-      margin-bottom: 20px;
-    }
+    h2 { color: #1a73e8; margin-top: 20px; margin-bottom: 10px; }
+    p { max-width: 700px; margin-bottom: 20px; }
 
     .automation-container {
       background-color: #fff;
@@ -81,35 +60,17 @@
       background-color: #e8f0fe;
     }
 
-    .automation-card.disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      pointer-events: none;
-    }
-
     .status {
-      font-size: 13px;
-      margin-top: 5px;
-      font-weight: bold;
+      font-size: 13px; margin-top: 5px; font-weight: bold;
     }
 
-    .status.Scheduled {
-      color: green;
-    }
-
-    .status.Inactive {
-      color: gray;
-    }
-
-    .status.Error {
-      color: red;
-    }
+    .status.Scheduled { color: green; }
+    .status.Inactive { color: gray; }
+    .status.Error { color: red; }
 
     .automation-key {
-      font-size: 12px;
-      color: #666;
-      margin-top: 8px;
-      word-break: break-word;
+      font-size: 12px; color: #666;
+      margin-top: 8px; word-break: break-word;
     }
 
     .automation-run {
@@ -158,25 +119,13 @@
       <p>Loading automations...</p>
     </div>
   </div>
-  <br><br><br>
+
   <div class="manual-entry">
     <label for="manualKey">Can't find your automation?</label>
     <input type="text" id="manualKey" placeholder="Enter Automation External Key" />
-    <button onclick="selectManualKey()">Confirm</button>
+    <button>Confirm</button>
   </div>
 
   <div id="status"></div>
-
-  <script>
-    function selectManualKey() {
-      const key = document.getElementById('manualKey').value.trim();
-      if (key) {
-        document.querySelectorAll('.automation-card').forEach(c => c.classList.remove('selected'));
-        window.selectedKey = key;
-        document.getElementById('done').disabled = false;
-        document.getElementById('status').innerText = `Selected manually: ${key}`;
-      }
-    }
-  </script>
 </body>
 </html>
