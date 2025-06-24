@@ -3,26 +3,18 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "test": "echo \"No tests to run\""
-  },
+  "start": "node server.js",
+  "test": "echo \"No tests to run\""
+},
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "axios": "^1.10.0",
+    "axios": "^1.9.0",
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Mahiboya427/Trigger-Automation-CA.git"
-  },
-  "bugs": {
-    "url": "https://github.com/Mahiboya427/Trigger-Automation-CA/issues"
-  },
-  "homepage": "https://github.com/Mahiboya427/Trigger-Automation-CA#readme"
+  }
 }
