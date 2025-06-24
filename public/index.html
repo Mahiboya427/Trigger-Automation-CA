@@ -163,7 +163,7 @@
 
   <div class="manual-entry">
     <label for="manualKey">Can't find your automation?</label>
-    <input type="text" id="manualKey" placeholder="Enter Automation Key manually" />
+    <input type="text" id="manualKey" placeholder="Enter Automation External Key" />
     <button onclick="selectManualKey()">Use This Key</button>
   </div>
 
@@ -175,7 +175,7 @@
       if (key) {
         document.querySelectorAll('.automation-card').forEach(c => c.classList.remove('selected'));
         window.selectedKey = key;
-        document.getElementById('status').innerText = `Selected manually: ${key}`;
+        document.getElementById('status').innerText = `Selected Automation External Key: ${key}`;
       }
     }
   </script>
