@@ -1,7 +1,7 @@
 {
   "workflowApiVersion": "1.1",
   "metaData": {
-    "icon": "https://trigger-automation-ca.onrender.com/icon.png",
+    "icon": "https://sfmc-eventtrigger-automation-akexarevdkhbcghj.centralindia-01.azurewebsites.net/icon.png",
     "category": "custom"
   },
   "type": "REST",
@@ -17,7 +17,7 @@
         { "automationKey": "" },
         { "email": "" }
       ],
-      "url": "https://trigger-automation-ca.onrender.com/activity/execute",
+      "url": "https://sfmc-eventtrigger-automation-akexarevdkhbcghj.centralindia-01.azurewebsites.net/activity/execute",
       "verb": "POST",
       "body": "",
       "header": "",
@@ -27,29 +27,29 @@
   },
   "configurationArguments": {
     "save": {
-      "url": "https://trigger-automation-ca.onrender.com/activity/save",
+      "url": "https://sfmc-eventtrigger-automation-akexarevdkhbcghj.centralindia-01.azurewebsites.net/activity/save",
       "verb": "POST",
       "format": "json"
     },
     "publish": {
-      "url": "https://trigger-automation-ca.onrender.com/activity/publish",
+      "url": "https://sfmc-eventtrigger-automation-akexarevdkhbcghj.centralindia-01.azurewebsites.net/activity/publish",
       "verb": "POST",
       "format": "json"
     },
     "validate": {
-      "url": "https://trigger-automation-ca.onrender.com/activity/validate",
+      "url": "https://sfmc-eventtrigger-automation-akexarevdkhbcghj.centralindia-01.azurewebsites.net/activity/validate",
       "verb": "POST",
       "format": "json"
     },
     "stop": {
-      "url": "https://trigger-automation-ca.onrender.com/activity/stop",
+      "url": "https://sfmc-eventtrigger-automation-akexarevdkhbcghj.centralindia-01.azurewebsites.net/activity/stop",
       "verb": "POST",
       "format": "json"
     }
   },
   "userInterfaces": {
     "configModal": {
-      "url": "https://trigger-automation-ca.onrender.com/index.html",
+      "url": "https://sfmc-eventtrigger-automation-akexarevdkhbcghj.centralindia-01.azurewebsites.net/index.html",
       "height": 675,
       "width": 675
     }
