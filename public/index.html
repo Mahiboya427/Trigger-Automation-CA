@@ -1,3 +1,4 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -38,7 +39,6 @@
     p {
       max-width: 700px;
       margin-bottom: 20px;
-      padding: 0 10px;
     }
 
     .automation-container {
@@ -140,7 +140,7 @@
     }
 
     .manual-entry button {
-      background-color: #555;
+      background-color: #1a73e8;
       color: white;
       padding: 6px 12px;
       border: none;
@@ -151,19 +151,17 @@
 </head>
 <body>
   <h2>Select an Automation to Trigger</h2>
-  <p style="padding: 0 20px;">
-    This custom activity will trigger the selected Marketing Cloud Automation when the journey reaches this step.
-  </p>
+  <p>This custom activity will trigger the selected Marketing Cloud Automation when the journey reaches this step.</p>
 
   <div class="automation-container">
     <div id="automationList" class="automation-list">
       <p>Loading automations...</p>
     </div>
   </div>
-
+  <br><br><br>
   <div class="manual-entry">
     <label for="manualKey">Can't find your automation?</label>
-    <input type="text" id="manualKey" placeholder="Enter Automation External Key" />
+    <input type="text" id="manualKey" placeholder="Enter Automation Key manually" />
     <button onclick="selectManualKey()">Use This Key</button>
   </div>
 
@@ -175,7 +173,8 @@
       if (key) {
         document.querySelectorAll('.automation-card').forEach(c => c.classList.remove('selected'));
         window.selectedKey = key;
-        document.getElementById('status').innerText = `Selected Automation External Key: ${key}`;
+        document.getElementById('done').disabled = false;
+        document.getElementById('status').innerText = `Selected manually: ${key}`;
       }
     }
   </script>
