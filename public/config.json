@@ -50,7 +50,7 @@
   "userInterfaces": {
     "configModal": {
       "url": "https://trigger-automation-ca.onrender.com/index.html",
-      "height": 400,
+      "height": 700,
       "width": 600
     }
   },
