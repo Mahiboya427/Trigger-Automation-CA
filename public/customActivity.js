@@ -42,7 +42,7 @@ window.onload = function () {
 
         payload.metaData.isConfigured = true;
         payload.metaData.label = "Key: " + selectedKey;
-        payload.name = "Key: " + selectedKey; // Label seen in Journey canvas
+        payload.name = "Key: " + selectedKey;
 
         connection.trigger('updateActivity', payload);
         setTimeout(() => {
@@ -50,13 +50,12 @@ window.onload = function () {
         }, 300);
       });
     } else {
-      setTimeout(waitForNextBtn, 300); // Retry until button is ready
+      setTimeout(waitForNextBtn, 300);
     }
   }
 
   document.addEventListener('DOMContentLoaded', waitForNextBtn);
 
-  // Fetch automations
   fetch('/automations')
     .then(response => response.json())
     .then(data => {
@@ -73,10 +72,9 @@ window.onload = function () {
           <div class="status ${item.status}">${item.status}</div>
           <div class="automation-key">${item.name}</div>
           <div class="automation-run">Last Run: ${new Date(item.lastRunTime).toLocaleString()}</div>
-          <button class="use-key-btn" style="background-color: #007bff; color: white; padding: 6px 10px; margin-top: 10px; border: none; border-radius: 4px;">Confirm</button>
         `;
 
-        card.querySelector('.use-key-btn').addEventListener('click', () => {
+        card.addEventListener('click', () => {
           document.querySelectorAll('.automation-card').forEach(c => c.classList.remove('selected'));
           card.classList.add('selected');
           window.selectedKey = item.key;
@@ -92,7 +90,6 @@ window.onload = function () {
       document.getElementById('automationList').innerHTML = '<p>Error loading automations.</p>';
     });
 
-  // Optional manual input fallback
   document.getElementById('manualKey').addEventListener('input', function (e) {
     window.selectedKey = e.target.value.trim();
     document.querySelectorAll('.automation-card').forEach(c => c.classList.remove('selected'));
