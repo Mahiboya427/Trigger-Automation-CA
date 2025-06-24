@@ -13,13 +13,13 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// 📂 Serve static files
+// 📂 Serve static files (e.g., index.html, customActivity.js)
 app.use(express.static(path.join(__dirname, 'public')));
 
 // 🩺 Health check
 app.get('/health', (req, res) => res.send('OK'));
 
-// 🔐 Auth helper
+// 🔐 Get Marketing Cloud access token
 async function getAccessToken() {
   const authUrl = 'https://mc654h8rl6ypfygmq-qvwq3yrjrq.auth.marketingcloudapis.com/v2/token';
   const { CLIENT_ID, CLIENT_SECRET, ACCOUNT_ID } = process.env;
@@ -34,7 +34,7 @@ async function getAccessToken() {
   return authResponse.data.access_token;
 }
 
-// 📦 Fetch automations
+// 📦 GET all Automations
 app.get('/automations', async (req, res) => {
   try {
     const accessToken = await getAccessToken();
@@ -53,17 +53,12 @@ app.get('/automations', async (req, res) => {
   }
 });
 
-// 🚀 Execute activity
+// 🚀 POST: Execute custom activity
 app.post('/activity/execute', async (req, res) => {
-  console.log('⚙️ Execute called:', JSON.stringify(req.body, null, 2));
+  console.log('🔥 Execute called with payload:', JSON.stringify(req.body, null, 2));
   try {
     const inArgs = req.body?.inArguments?.reduce((acc, curr) => ({ ...acc, ...curr }), {}) || {};
-    const { automationKey, email } = inArgs;
-
-    if (!email) {
-      console.log('❗Email is missing. Skipping automation trigger.');
-      return res.status(200).json({ status: 'skipped', message: 'Email is missing. Skipped triggering automation.' });
-    }
+    const { automationKey } = inArgs;
 
     if (!automationKey) {
       return res.status(400).json({ status: 'error', message: 'Automation key is missing.' });
@@ -72,27 +67,32 @@ app.post('/activity/execute', async (req, res) => {
     const accessToken = await getAccessToken();
     const automationUrl = `https://mc654h8rl6ypfygmq-qvwq3yrjrq.rest.marketingcloudapis.com/automation/v1/automations/key:${automationKey}/actions/runallonce`;
 
-    const triggerResponse = await axios.post(automationUrl, {}, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json'
+    const triggerResponse = await axios.post(
+      automationUrl,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
       }
-    });
+    );
 
     console.log('✅ Automation Triggered:', triggerResponse.data);
     res.status(200).json({ status: 'success', message: 'Automation triggered successfully' });
-
   } catch (error) {
     console.error('❌ Error triggering automation:', error.response?.data || error.message);
     res.status(500).json({ status: 'error', message: 'Failed to trigger automation' });
   }
 });
 
-// 🔧 Lifecycle handlers
+// 📦 Lifecycle Events
 app.post('/activity/save', (req, res) => res.status(200).json({ status: 'ok' }));
 app.post('/activity/validate', (req, res) => res.status(200).json({ status: 'ok' }));
 app.post('/activity/publish', (req, res) => res.status(200).json({ status: 'ok' }));
+app.post('/activity/stop', (req, res) => res.status(200).json({ status: 'ok' }));
 
+// 🚀 Start server
 app.listen(PORT, () => {
-  console.log(`🌐 Server running at http://localhost:${PORT}`);
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
