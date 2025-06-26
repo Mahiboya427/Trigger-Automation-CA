@@ -15,10 +15,7 @@
     "execute": {
       "inArguments": [
         { "automationKey": "" },
-        { "email": "" },
-        { "journeyName": "{{Context.Journey.Name}}" },
-        { "activityName": "{{Context.Activity.Name}}" },
-        { "journeyVersion": "{{Context.Version}}" }
+        { "email": "" }
       ],
       "url": "https://sfmc-eventtrigger-automation-akexarevdkhbcghj.centralindia-01.azurewebsites.net/activity/execute",
       "verb": "POST",
@@ -75,27 +72,6 @@
           {
             "email": {
               "dataType": "EmailAddress",
-              "isNullable": true,
-              "direction": "in"
-            }
-          },
-          {
-            "journeyName": {
-              "dataType": "Text",
-              "isNullable": true,
-              "direction": "in"
-            }
-          },
-          {
-            "activityName": {
-              "dataType": "Text",
-              "isNullable": true,
-              "direction": "in"
-            }
-          },
-          {
-            "journeyVersion": {
-              "dataType": "Text",
               "isNullable": true,
               "direction": "in"
             }
