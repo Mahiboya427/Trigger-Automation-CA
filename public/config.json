@@ -22,7 +22,11 @@
       "body": "",
       "header": "",
       "format": "json",
-      "useJwt": false
+      "useJwt": false,
+      "timeout": 30000,
+      "retryCount": 2,
+      "retryDelay": 1000,
+      "concurrentRequests": 1
     }
   },
   "configurationArguments": {
