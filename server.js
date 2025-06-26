@@ -43,9 +43,7 @@ async function logToDataExtension({
   errorMessage,
   activityId,
   definitionInstanceId,
-  journeyName,
-  activityName,
-  journeyVersion
+  journeyId
 }) {
   try {
     const accessToken = await getAccessToken();
@@ -60,9 +58,7 @@ async function logToDataExtension({
           ErrorMessage: errorMessage || '',
           ActivityId: activityId || '',
           DefinitionInstanceId: definitionInstanceId || '',
-          JourneyName: journeyName || '',
-          ActivityName: activityName || '',
-          JourneyVersion: journeyVersion || ''
+          journeyId: journeyId || ''
         }
       ]
     };
@@ -109,13 +105,12 @@ app.post('/activity/execute', async (req, res) => {
   const {
     automationKey,
     email,
-    journeyName,
-    activityName,
-    journeyVersion
+    journeyId
   } = inArgs;
 
   const activityId = req.body?.activityId;
   const definitionInstanceId = req.body?.definitionInstanceId;
+  const journeyId=eq.body?.journeyId;
 
   try {
     if (!automationKey) {
@@ -126,9 +121,7 @@ app.post('/activity/execute', async (req, res) => {
         errorMessage: 'Missing automation key',
         activityId,
         definitionInstanceId,
-        journeyName,
-        activityName,
-        journeyVersion
+        journeyId
       });
       return res.status(400).json({ status: 'error', message: 'Missing automation key' });
     }
@@ -156,9 +149,7 @@ app.post('/activity/execute', async (req, res) => {
       errorMessage: '',
       activityId,
       definitionInstanceId,
-      journeyName,
-      activityName,
-      journeyVersion
+      journeyId
     });
 
     res.status(200).json({ status: 'success', message: 'Automation triggered successfully' });
@@ -172,9 +163,7 @@ app.post('/activity/execute', async (req, res) => {
       errorMessage: error.message,
       activityId,
       definitionInstanceId,
-      journeyName,
-      activityName,
-      journeyVersion
+      journeyId
     });
 
     res.status(500).json({ status: 'error', message: 'Failed to trigger automation' });
