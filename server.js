@@ -9,12 +9,15 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// 🛡️ Deduplication Map (in-memory — use Redis/db for production scale)
+const deduplicationMap = new Map();
+
 // 🔧 Middleware
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// 📂 Serve static files (e.g., index.html, customActivity.js)
+// 📂 Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 
 // 🩺 Health check
@@ -22,8 +25,8 @@ app.get('/health', (req, res) => res.send('OK'));
 
 // 🔐 Get Marketing Cloud access token
 async function getAccessToken() {
-  const authUrl = 'https://mc654h8rl6ypfygmq-qvwq3yrjrq.auth.marketingcloudapis.com/v2/token';
   const { CLIENT_ID, CLIENT_SECRET, ACCOUNT_ID } = process.env;
+  const authUrl = 'https://mc654h8rl6ypfygmq-qvwq3yrjrq.auth.marketingcloudapis.com/v2/token';
 
   const authResponse = await axios.post(authUrl, {
     grant_type: 'client_credentials',
@@ -36,7 +39,7 @@ async function getAccessToken() {
 }
 
 // 📝 Log automation execution to Data Extension
-async function logToDataExtension({ contactKey, automationKey, status, errorMessage }) {
+async function logToDataExtension({ contactKey, automationKey, status, errorMessage, activityId, definitionInstanceId }) {
   try {
     const accessToken = await getAccessToken();
 
@@ -48,7 +51,9 @@ async function logToDataExtension({ contactKey, automationKey, status, errorMess
           AutomationKey: automationKey || '',
           TriggerTime: new Date().toISOString(),
           Status: status,
-          ErrorMessage: errorMessage || ''
+          ErrorMessage: errorMessage || '',
+          ActivityId: activityId || '',
+          DefinitionInstanceId: definitionInstanceId || ''
         }
       ]
     };
@@ -82,7 +87,7 @@ app.get('/automations', async (req, res) => {
     );
     res.json(response.data);
   } catch (err) {
-    console.error('Error fetching automations:', err.response?.data || err.message);
+    console.error('❌ Error fetching automations:', err.response?.data || err.message);
     res.status(500).json({ error: 'Failed to fetch automations' });
   }
 });
@@ -90,19 +95,35 @@ app.get('/automations', async (req, res) => {
 // 🚀 POST: Execute custom activity
 app.post('/activity/execute', async (req, res) => {
   console.log('🔥 Execute called with payload:', JSON.stringify(req.body, null, 2));
-  try {
-    const inArgs = req.body?.inArguments?.reduce((acc, curr) => ({ ...acc, ...curr }), {}) || {};
-    const { automationKey } = inArgs;
-    const contactKey = req.body?.keyValue || '';
 
+  const inArgs = req.body?.inArguments?.reduce((acc, curr) => ({ ...acc, ...curr }), {}) || {};
+  const contactKey = req.body?.keyValue || '';
+  const { automationKey } = inArgs;
+
+  const activityId = req.body?.activityId;
+  const definitionInstanceId = req.body?.definitionInstanceId;
+  const dedupeKey = `${activityId}-${definitionInstanceId}`;
+
+  // ✅ Deduplication logic
+  if (deduplicationMap.has(dedupeKey)) {
+    console.warn(`⚠️ Duplicate request skipped for ${dedupeKey}`);
+    return res.status(200).json({ status: 'duplicate', message: 'Duplicate execution skipped.' });
+  }
+
+  // Mark this execution as processed
+  deduplicationMap.set(dedupeKey, true);
+
+  try {
     if (!automationKey) {
       await logToDataExtension({
         contactKey,
         automationKey: '',
         status: 'Failed',
-        errorMessage: 'Automation key is missing.'
+        errorMessage: 'Missing automation key',
+        activityId,
+        definitionInstanceId
       });
-      return res.status(400).json({ status: 'error', message: 'Automation key is missing.' });
+      return res.status(400).json({ status: 'error', message: 'Missing automation key' });
     }
 
     const accessToken = await getAccessToken();
@@ -115,7 +136,8 @@ app.post('/activity/execute', async (req, res) => {
         headers: {
           Authorization: `Bearer ${accessToken}`,
           'Content-Type': 'application/json'
-        }
+        },
+        timeout: 8000 // 🕒 Optional timeout override on server side
       }
     );
 
@@ -125,7 +147,9 @@ app.post('/activity/execute', async (req, res) => {
       contactKey,
       automationKey,
       status: 'Success',
-      errorMessage: ''
+      errorMessage: '',
+      activityId,
+      definitionInstanceId
     });
 
     res.status(200).json({ status: 'success', message: 'Automation triggered successfully' });
@@ -133,10 +157,12 @@ app.post('/activity/execute', async (req, res) => {
     console.error('❌ Error triggering automation:', error.response?.data || error.message);
 
     await logToDataExtension({
-      contactKey: req.body?.keyValue || '',
-      automationKey: req.body?.inArguments?.[0]?.automationKey || '',
+      contactKey,
+      automationKey,
       status: 'Failed',
-      errorMessage: error.message
+      errorMessage: error.message,
+      activityId,
+      definitionInstanceId
     });
 
     res.status(500).json({ status: 'error', message: 'Failed to trigger automation' });
