@@ -3,23 +3,24 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
 const axios = require('axios');
+const { v4: uuidv4 } = require('uuid');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT; // ✅ No fallback to 3000 for Azure compatibility
 
-// 🔧 Middleware
+// Middleware
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// 📂 Serve static files (e.g., index.html, customActivity.js)
+// Static files
 app.use(express.static(path.join(__dirname, 'public')));
 
-// 🩺 Health check
+// Health check
 app.get('/health', (req, res) => res.send('OK'));
 
-// 🔐 Get Marketing Cloud access token
+// Get Marketing Cloud access token
 async function getAccessToken() {
   const authUrl = 'https://mc654h8rl6ypfygmq-qvwq3yrjrq.auth.marketingcloudapis.com/v2/token';
   const { CLIENT_ID, CLIENT_SECRET, ACCOUNT_ID } = process.env;
@@ -34,7 +35,41 @@ async function getAccessToken() {
   return authResponse.data.access_token;
 }
 
-// 📦 GET all Automations
+// Log automation execution to DE
+async function logToDataExtension({ contactKey, automationKey, status, errorMessage, activityId, definitionInstanceId }) {
+  try {
+    const accessToken = await getAccessToken();
+    const payload = {
+      items: [
+        {
+          LogID: uuidv4(),
+          ContactKey: contactKey || '',
+          AutomationKey: automationKey || '',
+          TriggerTime: new Date().toISOString(),
+          Status: status,
+          ErrorMessage: errorMessage || '',
+          ActivityId: activityId || '',
+          DefinitionInstanceId: definitionInstanceId || ''
+        }
+      ]
+    };
+
+    await axios.post(
+      `https://mc654h8rl6ypfygmq-qvwq3yrjrq.rest.marketingcloudapis.com/data/v1/async/dataextensions/key:69DE292E-4D00-44E3-AD84-01AE5CC68CF4/rows`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+  } catch (err) {
+    console.error('❌ Logging to DE failed:', err.response?.data || err.message);
+  }
+}
+
+// GET all automations
 app.get('/automations', async (req, res) => {
   try {
     const accessToken = await getAccessToken();
@@ -48,20 +83,32 @@ app.get('/automations', async (req, res) => {
     );
     res.json(response.data);
   } catch (err) {
-    console.error('Error fetching automations:', err.response?.data || err.message);
+    console.error('❌ Error fetching automations:', err.response?.data || err.message);
     res.status(500).json({ error: 'Failed to fetch automations' });
   }
 });
 
-// 🚀 POST: Execute custom activity
+// POST: Execute custom activity
 app.post('/activity/execute', async (req, res) => {
   console.log('🔥 Execute called with payload:', JSON.stringify(req.body, null, 2));
-  try {
-    const inArgs = req.body?.inArguments?.reduce((acc, curr) => ({ ...acc, ...curr }), {}) || {};
-    const { automationKey } = inArgs;
+  const inArgs = req.body?.inArguments?.reduce((acc, curr) => ({ ...acc, ...curr }), {}) || {};
+  const contactKey = req.body?.keyValue || '';
+  const { automationKey } = inArgs;
 
+  const activityId = req.body?.activityId;
+  const definitionInstanceId = req.body?.definitionInstanceId;
+
+  try {
     if (!automationKey) {
-      return res.status(400).json({ status: 'error', message: 'Automation key is missing.' });
+      await logToDataExtension({
+        contactKey,
+        automationKey: '',
+        status: 'Failed',
+        errorMessage: 'Missing automation key',
+        activityId,
+        definitionInstanceId
+      });
+      return res.status(400).json({ status: 'error', message: 'Missing automation key' });
     }
 
     const accessToken = await getAccessToken();
@@ -79,20 +126,40 @@ app.post('/activity/execute', async (req, res) => {
     );
 
     console.log('✅ Automation Triggered:', triggerResponse.data);
+
+    await logToDataExtension({
+      contactKey,
+      automationKey,
+      status: 'Success',
+      errorMessage: '',
+      activityId,
+      definitionInstanceId
+    });
+
     res.status(200).json({ status: 'success', message: 'Automation triggered successfully' });
   } catch (error) {
     console.error('❌ Error triggering automation:', error.response?.data || error.message);
+
+    await logToDataExtension({
+      contactKey,
+      automationKey,
+      status: 'Failed',
+      errorMessage: error.message,
+      activityId,
+      definitionInstanceId
+    });
+
     res.status(500).json({ status: 'error', message: 'Failed to trigger automation' });
   }
 });
 
-// 📦 Lifecycle Events
+// Lifecycle events
 app.post('/activity/save', (req, res) => res.status(200).json({ status: 'ok' }));
 app.post('/activity/validate', (req, res) => res.status(200).json({ status: 'ok' }));
 app.post('/activity/publish', (req, res) => res.status(200).json({ status: 'ok' }));
 app.post('/activity/stop', (req, res) => res.status(200).json({ status: 'ok' }));
 
-// 🚀 Start server
+// Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
