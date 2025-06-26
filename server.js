@@ -36,7 +36,17 @@ async function getAccessToken() {
 }
 
 // Log automation execution to DE
-async function logToDataExtension({ contactKey, automationKey, status, errorMessage, activityId, definitionInstanceId }) {
+async function logToDataExtension({
+  contactKey,
+  automationKey,
+  status,
+  errorMessage,
+  activityId,
+  definitionInstanceId,
+  journeyName,
+  activityName,
+  journeyVersion
+}) {
   try {
     const accessToken = await getAccessToken();
     const payload = {
@@ -45,11 +55,14 @@ async function logToDataExtension({ contactKey, automationKey, status, errorMess
           LogID: uuidv4(),
           ContactKey: contactKey || '',
           AutomationKey: automationKey || '',
-          TriggerTime: new Date().toISOString(),
+          TriggerTime: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
           Status: status,
           ErrorMessage: errorMessage || '',
           ActivityId: activityId || '',
-          DefinitionInstanceId: definitionInstanceId || ''
+          DefinitionInstanceId: definitionInstanceId || '',
+          JourneyName: journeyName || '',
+          ActivityName: activityName || '',
+          JourneyVersion: journeyVersion || ''
         }
       ]
     };
@@ -93,7 +106,13 @@ app.post('/activity/execute', async (req, res) => {
   console.log('🔥 Execute called with payload:', JSON.stringify(req.body, null, 2));
   const inArgs = req.body?.inArguments?.reduce((acc, curr) => ({ ...acc, ...curr }), {}) || {};
   const contactKey = req.body?.keyValue || '';
-  const { automationKey } = inArgs;
+  const {
+    automationKey,
+    email,
+    journeyName,
+    activityName,
+    journeyVersion
+  } = inArgs;
 
   const activityId = req.body?.activityId;
   const definitionInstanceId = req.body?.definitionInstanceId;
@@ -106,7 +125,10 @@ app.post('/activity/execute', async (req, res) => {
         status: 'Failed',
         errorMessage: 'Missing automation key',
         activityId,
-        definitionInstanceId
+        definitionInstanceId,
+        journeyName,
+        activityName,
+        journeyVersion
       });
       return res.status(400).json({ status: 'error', message: 'Missing automation key' });
     }
@@ -133,7 +155,10 @@ app.post('/activity/execute', async (req, res) => {
       status: 'Success',
       errorMessage: '',
       activityId,
-      definitionInstanceId
+      definitionInstanceId,
+      journeyName,
+      activityName,
+      journeyVersion
     });
 
     res.status(200).json({ status: 'success', message: 'Automation triggered successfully' });
@@ -146,7 +171,10 @@ app.post('/activity/execute', async (req, res) => {
       status: 'Failed',
       errorMessage: error.message,
       activityId,
-      definitionInstanceId
+      definitionInstanceId,
+      journeyName,
+      activityName,
+      journeyVersion
     });
 
     res.status(500).json({ status: 'error', message: 'Failed to trigger automation' });
