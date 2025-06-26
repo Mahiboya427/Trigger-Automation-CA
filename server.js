@@ -7,20 +7,20 @@ const { v4: uuidv4 } = require('uuid');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT; // ✅ No fallback to 3000 for Azure compatibility
+const PORT = process.env.PORT; // For Azure compatibility
 
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Static files
+// Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Health check
+// Health check endpoint
 app.get('/health', (req, res) => res.send('OK'));
 
-// Get Marketing Cloud access token
+// Function to get Marketing Cloud access token
 async function getAccessToken() {
   const authUrl = 'https://mc654h8rl6ypfygmq-qvwq3yrjrq.auth.marketingcloudapis.com/v2/token';
   const { CLIENT_ID, CLIENT_SECRET, ACCOUNT_ID } = process.env;
@@ -35,16 +35,8 @@ async function getAccessToken() {
   return authResponse.data.access_token;
 }
 
-// Log automation execution to DE
-async function logToDataExtension({
-  contactKey,
-  automationKey,
-  status,
-  errorMessage,
-  activityId,
-  definitionInstanceId,
-  journeyId
-}) {
+// Log to Data Extension
+async function logToDataExtension({ contactKey, automationKey, status, errorMessage, activityId, definitionInstanceId }) {
   try {
     const accessToken = await getAccessToken();
     const payload = {
@@ -58,7 +50,7 @@ async function logToDataExtension({
           ErrorMessage: errorMessage || '',
           ActivityId: activityId || '',
           DefinitionInstanceId: definitionInstanceId || '',
-          journeyId: journeyId || ''
+          JourneyId: definitionInstanceId || '' // Using definitionInstanceId as JourneyId
         }
       ]
     };
@@ -78,7 +70,7 @@ async function logToDataExtension({
   }
 }
 
-// GET all automations
+// Get automations
 app.get('/automations', async (req, res) => {
   try {
     const accessToken = await getAccessToken();
@@ -97,20 +89,17 @@ app.get('/automations', async (req, res) => {
   }
 });
 
-// POST: Execute custom activity
+// Execute custom activity
 app.post('/activity/execute', async (req, res) => {
   console.log('🔥 Execute called with payload:', JSON.stringify(req.body, null, 2));
+
   const inArgs = req.body?.inArguments?.reduce((acc, curr) => ({ ...acc, ...curr }), {}) || {};
   const contactKey = req.body?.keyValue || '';
-  const {
-    automationKey,
-    email,
-    journeyId
-  } = inArgs;
+  const { automationKey } = inArgs;
 
   const activityId = req.body?.activityId;
   const definitionInstanceId = req.body?.definitionInstanceId;
-  const journeyId=eq.body?.journeyId;
+  const journeyId = definitionInstanceId; // Treating as journeyId
 
   try {
     if (!automationKey) {
@@ -120,8 +109,7 @@ app.post('/activity/execute', async (req, res) => {
         status: 'Failed',
         errorMessage: 'Missing automation key',
         activityId,
-        definitionInstanceId,
-        journeyId
+        definitionInstanceId
       });
       return res.status(400).json({ status: 'error', message: 'Missing automation key' });
     }
@@ -148,8 +136,7 @@ app.post('/activity/execute', async (req, res) => {
       status: 'Success',
       errorMessage: '',
       activityId,
-      definitionInstanceId,
-      journeyId
+      definitionInstanceId
     });
 
     res.status(200).json({ status: 'success', message: 'Automation triggered successfully' });
@@ -162,15 +149,14 @@ app.post('/activity/execute', async (req, res) => {
       status: 'Failed',
       errorMessage: error.message,
       activityId,
-      definitionInstanceId,
-      journeyId
+      definitionInstanceId
     });
 
     res.status(500).json({ status: 'error', message: 'Failed to trigger automation' });
   }
 });
 
-// Lifecycle events
+// Lifecycle endpoints
 app.post('/activity/save', (req, res) => res.status(200).json({ status: 'ok' }));
 app.post('/activity/validate', (req, res) => res.status(200).json({ status: 'ok' }));
 app.post('/activity/publish', (req, res) => res.status(200).json({ status: 'ok' }));
