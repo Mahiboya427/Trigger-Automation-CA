@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
 const axios = require('axios');
+const { v4: uuidv4 } = require('uuid');
 require('dotenv').config();
 
 const app = express();
@@ -34,6 +35,39 @@ async function getAccessToken() {
   return authResponse.data.access_token;
 }
 
+// 📝 Log automation execution to Data Extension
+async function logToDataExtension({ contactKey, automationKey, status, errorMessage }) {
+  try {
+    const accessToken = await getAccessToken();
+
+    const payload = {
+      items: [
+        {
+          LogID: uuidv4(),
+          ContactKey: contactKey || '',
+          AutomationKey: automationKey || '',
+          TriggerTime: new Date().toISOString(),
+          Status: status,
+          ErrorMessage: errorMessage || ''
+        }
+      ]
+    };
+
+    await axios.post(
+      `https://mc654h8rl6ypfygmq-qvwq3yrjrq.rest.marketingcloudapis.com/data/v1/async/dataextensions/key:69DE292E-4D00-44E3-AD84-01AE5CC68CF4/rows`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+  } catch (err) {
+    console.error('📛 Logging to DE failed:', err.response?.data || err.message);
+  }
+}
+
 // 📦 GET all Automations
 app.get('/automations', async (req, res) => {
   try {
@@ -59,8 +93,15 @@ app.post('/activity/execute', async (req, res) => {
   try {
     const inArgs = req.body?.inArguments?.reduce((acc, curr) => ({ ...acc, ...curr }), {}) || {};
     const { automationKey } = inArgs;
+    const contactKey = req.body?.keyValue || '';
 
     if (!automationKey) {
+      await logToDataExtension({
+        contactKey,
+        automationKey: '',
+        status: 'Failed',
+        errorMessage: 'Automation key is missing.'
+      });
       return res.status(400).json({ status: 'error', message: 'Automation key is missing.' });
     }
 
@@ -79,9 +120,25 @@ app.post('/activity/execute', async (req, res) => {
     );
 
     console.log('✅ Automation Triggered:', triggerResponse.data);
+
+    await logToDataExtension({
+      contactKey,
+      automationKey,
+      status: 'Success',
+      errorMessage: ''
+    });
+
     res.status(200).json({ status: 'success', message: 'Automation triggered successfully' });
   } catch (error) {
     console.error('❌ Error triggering automation:', error.response?.data || error.message);
+
+    await logToDataExtension({
+      contactKey: req.body?.keyValue || '',
+      automationKey: req.body?.inArguments?.[0]?.automationKey || '',
+      status: 'Failed',
+      errorMessage: error.message
+    });
+
     res.status(500).json({ status: 'error', message: 'Failed to trigger automation' });
   }
 });
