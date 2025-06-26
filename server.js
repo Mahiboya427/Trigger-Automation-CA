@@ -1,4 +1,3 @@
-// 🌐 External Modules
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
@@ -7,11 +6,10 @@ const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
 require('dotenv').config();
 
-// 🏁 Initialize App
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT; // Do NOT fallback to 3000 in Azure
 
-// 🛡️ Deduplication Map (in-memory — use Redis/db for production)
+// 🔄 In-memory deduplication map
 const deduplicationMap = new Map();
 
 // 🔧 Middleware
@@ -19,18 +17,13 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// 📂 Serve Static Files
+// 📂 Serve static UI
 app.use(express.static(path.join(__dirname, 'public')));
 
-// 🌍 Root Route (REQUIRED for Azure ping check)
-app.get('/', (req, res) => {
-  res.send('✅ SFMC Automation Trigger is running!');
-});
-
-// 🩺 Health Check
+// ✅ Health Check
 app.get('/health', (req, res) => res.send('OK'));
 
-// 🔐 Get Access Token from SFMC
+// 🔐 Get OAuth Access Token
 async function getAccessToken() {
   const { CLIENT_ID, CLIENT_SECRET, ACCOUNT_ID } = process.env;
   const authUrl = 'https://mc654h8rl6ypfygmq-qvwq3yrjrq.auth.marketingcloudapis.com/v2/token';
@@ -45,7 +38,7 @@ async function getAccessToken() {
   return response.data.access_token;
 }
 
-// 📝 Log to Data Extension
+// 📝 Log Automation Execution to DE
 async function logToDataExtension({ contactKey, automationKey, status, errorMessage, activityId, definitionInstanceId }) {
   try {
     const accessToken = await getAccessToken();
@@ -76,20 +69,18 @@ async function logToDataExtension({ contactKey, automationKey, status, errorMess
       }
     );
   } catch (err) {
-    console.error('📛 Logging to DE failed:', err.response?.data || err.message);
+    console.error('📛 DE Logging Error:', err.response?.data || err.message);
   }
 }
 
-// 📦 Fetch All Automations
+// 🔁 GET: List All Automations
 app.get('/automations', async (req, res) => {
   try {
     const accessToken = await getAccessToken();
     const response = await axios.get(
       'https://mc654h8rl6ypfygmq-qvwq3yrjrq.rest.marketingcloudapis.com/automation/v1/automations',
       {
-        headers: {
-          Authorization: `Bearer ${accessToken}`
-        }
+        headers: { Authorization: `Bearer ${accessToken}` }
       }
     );
     res.json(response.data);
@@ -99,10 +90,9 @@ app.get('/automations', async (req, res) => {
   }
 });
 
-// 🚀 Execute Custom Activity
+// 🚀 POST: Execute Automation
 app.post('/activity/execute', async (req, res) => {
-  console.log('🔥 Execute called with payload:', JSON.stringify(req.body, null, 2));
-
+  console.log('🔥 Execute Payload:', JSON.stringify(req.body, null, 2));
   const inArgs = req.body?.inArguments?.reduce((acc, curr) => ({ ...acc, ...curr }), {}) || {};
   const contactKey = req.body?.keyValue || '';
   const { automationKey } = inArgs;
@@ -111,43 +101,39 @@ app.post('/activity/execute', async (req, res) => {
   const definitionInstanceId = req.body?.definitionInstanceId;
   const dedupeKey = `${activityId}-${definitionInstanceId}`;
 
-  // ✅ Deduplication
+  // ✅ Deduplication check
   if (deduplicationMap.has(dedupeKey)) {
-    console.warn(`⚠️ Duplicate execution skipped for ${dedupeKey}`);
-    return res.status(200).json({ status: 'duplicate', message: 'Duplicate execution skipped.' });
+    console.warn(`⚠️ Skipped duplicate execution for ${dedupeKey}`);
+    return res.status(200).json({ status: 'duplicate', message: 'Duplicate execution skipped' });
   }
 
-  deduplicationMap.set(dedupeKey, true);
+  deduplicationMap.set(dedupeKey, true); // mark execution
+
+  if (!automationKey) {
+    await logToDataExtension({
+      contactKey,
+      automationKey: '',
+      status: 'Failed',
+      errorMessage: 'Missing automationKey',
+      activityId,
+      definitionInstanceId
+    });
+    return res.status(400).json({ status: 'error', message: 'Missing automationKey' });
+  }
 
   try {
-    if (!automationKey) {
-      await logToDataExtension({
-        contactKey,
-        automationKey: '',
-        status: 'Failed',
-        errorMessage: 'Missing automation key',
-        activityId,
-        definitionInstanceId
-      });
-      return res.status(400).json({ status: 'error', message: 'Missing automation key' });
-    }
-
     const accessToken = await getAccessToken();
-    const automationUrl = `https://mc654h8rl6ypfygmq-qvwq3yrjrq.rest.marketingcloudapis.com/automation/v1/automations/key:${automationKey}/actions/runallonce`;
+    const url = `https://mc654h8rl6ypfygmq-qvwq3yrjrq.rest.marketingcloudapis.com/automation/v1/automations/key:${automationKey}/actions/runallonce`;
 
-    const triggerResponse = await axios.post(
-      automationUrl,
-      {},
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        },
-        timeout: 8000
-      }
-    );
+    const triggerRes = await axios.post(url, {}, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      timeout: 8000
+    });
 
-    console.log('✅ Automation triggered:', triggerResponse.data);
+    console.log('✅ Triggered Automation:', triggerRes.data);
 
     await logToDataExtension({
       contactKey,
@@ -160,8 +146,7 @@ app.post('/activity/execute', async (req, res) => {
 
     res.status(200).json({ status: 'success', message: 'Automation triggered successfully' });
   } catch (error) {
-    console.error('❌ Error triggering automation:', error.response?.data || error.message);
-
+    console.error('❌ Automation error:', error.response?.data || error.message);
     await logToDataExtension({
       contactKey,
       automationKey,
@@ -175,13 +160,13 @@ app.post('/activity/execute', async (req, res) => {
   }
 });
 
-// 🔁 Lifecycle Events
+// 📦 Lifecycle Events
 app.post('/activity/save', (req, res) => res.status(200).json({ status: 'ok' }));
 app.post('/activity/validate', (req, res) => res.status(200).json({ status: 'ok' }));
 app.post('/activity/publish', (req, res) => res.status(200).json({ status: 'ok' }));
 app.post('/activity/stop', (req, res) => res.status(200).json({ status: 'ok' }));
 
-// 🚀 Boot the Server
+// 🚀 Start Server
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🚀 Server started on Azure port ${PORT}`);
 });
