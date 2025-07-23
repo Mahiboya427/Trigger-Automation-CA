@@ -41,9 +41,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: build
-    environment:
-      name: 'Production'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+    
     
     steps:
       - name: Download artifact from build job
@@ -61,4 +59,4 @@ jobs:
           app-name: 'sfmc-eventtrigger-automation'
           slot-name: 'Production'
           package: .
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_CFF3AA2093FD4D4CAA71200A2B275114 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_98C52077DDCC45C3A128A53C20AC1FB8 }}
